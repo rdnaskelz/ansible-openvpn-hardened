@@ -12,7 +12,7 @@
 
 - name: Audit | tiger | Make local destination
   local_action: file path="{{ local_creds_folder }}/" state=directory
-  become: False
+  become: false
 
 - name: Audit | tiger | Get report name
   find:
@@ -25,6 +25,6 @@
   fetch:
     src: "{{ item.path }}"
     dest: "{{ local_creds_folder }}/tiger_report-{{ item.checksum }}.txt"
-    flat: yes
+    flat: true
   with_items:
     - "{{ tiger_report_path.files }}"

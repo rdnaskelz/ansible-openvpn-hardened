@@ -1,58 +1,75 @@
 ---
 - name: OpenVPN | Install | Set Distro/Version specific variables
-  include_vars: "{{ item }}"
-  tags: ['common','packages','pki','openvpn','dns','harden','sysctl','umask','services','kernel','misc','auditd','firewall','password','users','sshd','aide']
+  ansible.builtin.include_vars: "{{ item }}"
+  tags:
+    - 'common'
+    - 'packages'
+    - 'pki'
+    - 'openvpn'
+    - 'dns'
+    - 'harden'
+    - 'sysctl'
+    - 'umask'
+    - 'services'
+    - 'kernel'
+    - 'misc'
+    - 'auditd'
+    - 'firewall'
+    - 'password'
+    - 'users'
+    - 'sshd'
+    - 'aide'
   with_first_found:
-    #- "../vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version | int}}.yml"
-    #- "../vars/{{ ansible_distribution }}.yml"
+    # - "../vars/{{ ansible_distribution }}-{{ ansible_distribution_major_version | int}}.yml"
+    # - "../vars/{{ ansible_distribution }}.yml"
     - "../vars/{{ ansible_os_family }}.yml"
-    #- "../vars/default.yml"
+    # - "../vars/default.yml"
   notify:
     - clear history
 
-- include: packages.yml
+- ansible.builtin.include_tasks: packages.yml
   tags: ['packages']
 
-- include: pki.yml
-  tags: ['pki','creds']
+- ansible.builtin.include_tasks: pki.yml
+  tags: ['pki', 'creds']
 
-- include: openvpn.yml
+- ansible.builtin.include_tasks: openvpn.yml
   tags: ['openvpn']
 
-- include: dns.yml
+- ansible.builtin.include_tasks: dns.yml
   tags: ['dns']
 
-- include: harden_sysctl.yml
+- ansible.builtin.include_tasks: harden_sysctl.yml
   when: ansible_virtualization_type != "docker"
   tags: ['sysctl', 'harden']
 
-- include: harden_umask.yml
+- ansible.builtin.include_tasks: harden_umask.yml
   tags: ['umask', 'harden']
 
-- include: harden_services.yml
+- ansible.builtin.include_tasks: harden_services.yml
   tags: ['services', 'harden']
 
-- include: harden_kernel.yml
+- ansible.builtin.include_tasks: harden_kernel.yml
   when: ansible_virtualization_type != "docker"
   tags: ['kernel', 'harden']
 
-- include: harden_misc.yml
+- ansible.builtin.include_tasks: harden_misc.yml
   tags: ['misc', 'harden']
 
-- include: harden_auditd.yml
+- ansible.builtin.include_tasks: harden_auditd.yml
   tags: ['auditd', 'harden']
 
-- include: firewall.yml
+- ansible.builtin.include_tasks: firewall.yml
   tags: ['firewall', 'harden']
 
-- include: harden_password.yml
+- ansible.builtin.include_tasks: harden_password.yml
   tags: ['password', 'harden']
 
-- include: harden_users.yml
+- ansible.builtin.include_tasks: harden_users.yml
   tags: ['users', 'harden']
 
-- include: harden_sshd.yml
+- ansible.builtin.include_tasks: harden_sshd.yml
   tags: ['sshd', 'harden']
 
-- include: harden_aide.yml
+- ansible.builtin.include_tasks: harden_aide.yml
   tags: ['aide', 'harden']

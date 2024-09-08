@@ -14,7 +14,7 @@
   unarchive:
     src: "~/{{ oscap_ssg_archive }}"
     dest: "{{ oscap_policy_parent }}"
-    remote_src: True
+    remote_src: true
   when: ansible_os_family == "Debian"
 
 - name: Audit | OpenSCAP | Run
@@ -37,17 +37,17 @@
 - name: Audit | OpenSCAP | Check Run Results
   fail:
     msg: "Error occurred. See stdout:\n{{ item.stdout }}"
-  no_log: True
+  no_log: true
   when: item.stdout.find('OpenSCAP Error') == 1
   with_items: "{{ openscap_results.results }}"
 
 - name: Audit | OpenSCAP | Make local destination
   local_action: file path="{{ local_creds_folder }}/" state=directory
-  become: False
+  become: false
 
 - name: Audit | OpenSCAP | Get report
   fetch:
     src: "~/oscap_report_{{ item.name }}.html"
     dest: "{{ local_creds_folder }}/oscap_report_{{ item.name }}.html"
-    flat: yes
+    flat: true
   with_items: "{{ oscap_reports }}"

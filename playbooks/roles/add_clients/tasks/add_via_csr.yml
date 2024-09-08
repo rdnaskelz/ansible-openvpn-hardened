@@ -8,12 +8,12 @@
 # openssl x509 -in CERTIFICATE_FILE -fingerprint -noout
 
 - name: OpenVPN | Add via CSR | Upload CSR
-  copy:
+  ansible.builtin.copy:
     src: "{{ csr_path }}"
     dest: "{{ openvpn_path_reqs }}/{{ cn }}.req"
 
 - name: OpenVPN | Add via CSR | Sign CSR
-  expect:
+  ansible.builtin.expect:
     command: ./easyrsa sign-req client {{ cn }}
     responses:
       'Enter pass phrase for .*?:$': "{{ ca_password }}"
@@ -24,13 +24,13 @@
   fetch:
     src: "{{ openvpn_ca_cert }}"
     dest: "{{ local_creds_folder }}/{{ cn }}/"
-    flat: yes
+    flat: true
 
 - name: OpenVPN | Add via CSR | Get client cert
   fetch:
     src: "{{ openvpn_path_certs }}/{{ cn }}.crt"
     dest: "{{ local_creds_folder }}/{{ cn }}/"
-    flat: yes
+    flat: true
 
 - name: OpenVPN | Add via CSR | Register HMAC firewall key contents
   command: cat {{ openvpn_hmac_firewall }}
@@ -39,7 +39,7 @@
   changed_when: false
 
 - name: OpenVPN | Add via CSR | Write OpenVPN client config
-  template:
+  ansible.builtin.template:
     src: client_common.ovpn.j2
     dest: "{{ local_creds_folder }}/{{ cn }}/{{ cn }}.ovpn"
   delegate_to: 127.0.0.1

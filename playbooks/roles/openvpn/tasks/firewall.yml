@@ -9,7 +9,7 @@
     dest: "{{ path_persistent_iptables_rules }}"
     owner: root
     group: root
-    mode: 0744
+    mode: "0744"
 
 - name: OpenVPN | Firewall | Enable iptables service
   service:

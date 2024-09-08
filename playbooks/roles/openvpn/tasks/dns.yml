@@ -8,7 +8,7 @@
     name: "{{ dns_user }}"
     group: "{{ dns_group }}"
     shell: /usr/sbin/nologin
-    createhome: no
+    createhome: false
 
 - name: OpenVPN | dns | Generate dnsmasq configuration file
   template:

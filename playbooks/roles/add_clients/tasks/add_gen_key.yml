@@ -1,43 +1,43 @@
 ---
 - name: OpenVPN | Add Clients | Check for existing private key passwords
   local_action: stat path={{ local_creds_folder }}/{{ item }}/{{ openvpn_server_common_name }}_pk_pass.txt
-  become: False
+  become: false
   register: client_pk_passwords_local
   with_items:
     - "{{ clients_to_add }}"
 
 - name: OpenVPN | Add Clients | Generate private key passwords
-  shell: echo "$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c15)"
+  ansible.builtin.shell: echo "$(head /dev/urandom | tr -dc A-Za-z0-9 | head -c15)"
   no_log: true
   register: client_pk_passwords
   with_items: "{{ clients_to_add }}"
-  when: "client_pk_passwords_local.results[0].stat.exists == False"
+  when: "client_pk_passwords_local.results[0].stat.exists == false"
 
 - name: OpenVPN | Add Clients | Make local destination
   local_action: file path="{{ local_creds_folder }}/{{ item }}/" state=directory
-  become: False
+  become: false
   with_items:
     - "{{ clients_to_add }}"
 
 - name: OpenVPN | Add Clients | Write private key pass phrases
   local_action: copy content={{ item[1].stdout }} dest={{ local_creds_folder }}/{{ item[0] }}/{{ openvpn_server_common_name }}_pk_pass.txt
   no_log: true
-  become: False
+  become: false
   with_together:
     - "{{ clients_to_add }}"
     - "{{ client_pk_passwords.results }}"
-  when: "client_pk_passwords_local.results[0].stat.exists == False"
+  when: "client_pk_passwords_local.results[0].stat.exists == false"
 
 - name: OpenVPN | Add Clients | Read private key pass phrases
   local_action: command cat {{ local_creds_folder }}/{{ item }}/{{ openvpn_server_common_name }}_pk_pass.txt
   no_log: true
-  become: False
+  become: false
   register: client_pk_passwords
   with_items: "{{ clients_to_add }}"
   changed_when: false
 
 - name: OpenVPN | Add Clients | Build Clients
-  expect:
+  ansible.builtin.expect:
     command: ./easyrsa build-client-full {{ item[0] }}@{{ openvpn_server_common_name }} --req-cn {{ item[0] }}@{{ openvpn_server_common_name }}
     responses:
       'Enter PEM pass phrase:$': "{{ item[1].stdout }}"
@@ -51,39 +51,39 @@
     - "{{ client_pk_passwords.results }}"
 
 - name: OpenVPN | Add Clients | Make client configuration directory
-  file:
+  ansible.builtin.file:
     path: "{{ openvpn_path_pki }}/ovpn"
     mode: 0700
     state: directory
 
 - name: OpenVPN | Add Clients | Register CA certificate contents
-  command: cat {{ openvpn_ca_cert }}
+  ansible.builtin.command: cat {{ openvpn_ca_cert }}
   no_log: true
   register: openvpn_ca_contents
   changed_when: false
 
 - name: OpenVPN | Add Clients | Register HMAC firewall key contents
-  command: cat {{ openvpn_hmac_firewall }}
+  ansible.builtin.command: cat {{ openvpn_hmac_firewall }}
 #  no_log: true
   register: openvpn_hmac_firewall_contents
   changed_when: false
 
 - name: OpenVPN | Add Clients | Register client key contents
-  command: cat {{ openvpn_path_keys }}/{{ item }}@{{ openvpn_server_common_name }}.key
+  ansible.builtin.command: cat {{ openvpn_path_keys }}/{{ item }}@{{ openvpn_server_common_name }}.key
   with_items: "{{ clients_to_add }}"
   no_log: true
   register: openvpn_client_keys
   changed_when: false
 
 - name: OpenVPN | Add Clients | Register client certificate contents
-  command: cat {{ openvpn_path_certs }}/{{ item }}@{{ openvpn_server_common_name }}.crt
+  ansible.builtin.command: cat {{ openvpn_path_certs }}/{{ item }}@{{ openvpn_server_common_name }}.crt
   with_items: "{{ clients_to_add }}"
   no_log: true
   register: openvpn_client_certs
   changed_when: false
 
 - name: OpenVPN | Add Clients | Build client configs (.ovpn files; pki embedded)
-  template:
+  ansible.builtin.template:
     src: client_pki_embedded.ovpn.j2
     dest: "{{ openvpn_path_pki }}/ovpn/{{ item[0] }}@{{ openvpn_server_common_name }}-pki-embedded.ovpn"
     mode: 0400
@@ -97,7 +97,7 @@
   template:
     src: client_pki_files.ovpn.j2
     dest: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}-pki-files.ovpn"
-    mode: 0400
+    mode: "0400"
   no_log: true
   with_items:
     - "{{ clients_to_add }}"
@@ -106,7 +106,7 @@
   template:
     src: client_pkcs12.ovpn.j2
     dest: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}-pkcs12.ovpn"
-    mode: 0400
+    mode: "0400"
   no_log: true
   with_items:
     - "{{ clients_to_add }}"
@@ -134,7 +134,7 @@
   fetch:
     src: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}-pki-embedded.ovpn"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -142,7 +142,7 @@
   fetch:
     src: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}-pki-files.ovpn"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -150,7 +150,7 @@
   fetch:
     src: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}-pkcs12.ovpn"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -158,7 +158,7 @@
   fetch:
     src: "{{ openvpn_path_pki }}/ovpn/{{ item }}@{{ openvpn_server_common_name }}.p12"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -166,7 +166,7 @@
   fetch:
     src: "{{ openvpn_ca_cert }}"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -174,7 +174,7 @@
   fetch:
     src: "{{ openvpn_path_certs }}/{{ item }}@{{ openvpn_server_common_name }}.crt"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 
@@ -182,7 +182,7 @@
   fetch:
     src: "{{ openvpn_path_keys }}/{{ item }}@{{ openvpn_server_common_name }}.key"
     dest: "{{ local_creds_folder }}/{{ item }}/"
-    flat: yes
+    flat: true
   with_items:
     - "{{ clients_to_add }}"
 

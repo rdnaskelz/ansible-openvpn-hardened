@@ -2,7 +2,7 @@
 - name: OpenVPN | package | Ensure the APT cache is up to date
   apt:
     update_cache: yes
-  changed_when: False
+  changed_when: false
   when: ansible_os_family == "Debian"
 
 - name: OpenVPN | package | Remove non-required packages
@@ -12,7 +12,7 @@
   with_items: "{{ unwanted_packages }}"
 
 - name: OpenVPN | package | Install {{ ansible_os_family }} specific packages
-  become: yes
+  become: true
   package:
     name: "{{ item }}"
   with_items: "{{ os_family_specific_pre }}"
@@ -86,14 +86,14 @@
     - skip_ansible_lint
 
 - name: OpenVPN | package | Copy the unattended-upgrades templates to enable automatic security updates
-  copy:
+  ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
     owner: root
     group: root
     mode: 0644
   with_items:
-    - { src: "10periodic",            dest: "/etc/apt/apt.conf.d" }
+    - { src: "10periodic", dest: "/etc/apt/apt.conf.d" }
     - { src: "50unattended-upgrades", dest: "/etc/apt/apt.conf.d" }
   when: ansible_os_family == "Debian"
 
@@ -110,9 +110,13 @@
 
 - name: Update python to python 3
   become: true
-  command: update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+  ansible.builtin.command: update-alternatives --install /usr/bin/python python /usr/bin/python3 10
 
+# break_system_packages is not considered the best practice 
+# by the general consensus but I haven't been able to find
+# another good way for pip install with python3.12 and PEP 668
 - name: OpenVPN | package | Install pexpect via pip
-  pip:
+  ansible.builtin.pip:
     name: "pexpect"
     version: "3.3"
+    break_system_packages: true

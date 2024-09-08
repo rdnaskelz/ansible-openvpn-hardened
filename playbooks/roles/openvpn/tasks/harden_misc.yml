@@ -44,23 +44,6 @@
     - "/lib/tmpfiles.d/cloud-init.conf"
   when: tmpfiles_cloud.stat.exists
 
-# TODO check if this file is created elsewhere (/etc/crontab, /etc/cron.daily, etc)
-# Ubuntu/Debian creates a cron job in /etc/cron.daily
-- name: OpenVPN | Harden Misc | Periodic run of AIDE via cron @ 04:05:00
-  copy:
-    content: "05 4 * * * root {{ path_bin_aide }} --check"
-    dest: /etc/cron.d/aide
-  when: ansible_os_family == "RedHat"
-
-- name: OpenVPN | Harden Misc | Ensure AIDE is run via cron
-  stat: path=/etc/cron.daily/aide
-  register: aide_cron
-  when: ansible_os_family == "Debian"
-
-- name: OpenVPN | Harden Misc | Check for AIDE cron job
-  fail: msg="No daily cron job for running AIDE"
-  when: ansible_os_family == "Debian" and aide_cron.stat.exists == false
-
 # Necessary for Azure, this line seems to be missing in the 16.04 image.
 # Absense of this line causes sudo to hang
 # Since using backrefs, if no match -> no change. This prevents adding {{ ansible_hostname }} everytime
